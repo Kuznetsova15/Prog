@@ -1,1 +1,72 @@
 
+//9
+//Определить интерфейс Triad с методами +1
+//Реализовать в классах Date и Time
+import java.util.Scanner;
+interface Triad
+{
+    
+    void ed(); void des(); void cot(); void print(); void prov();
+}
+
+class Date implements Triad
+{
+    int d, m, y;
+    Date(int d, int m, int y)
+    {
+        this.y=y; this.m=m; this.d=d;
+       prov();
+    }
+    public void prov()
+    {if(d>30) { m+=d/30; d%=30;}
+    if (m>12) {y+=m/12; m%=12;} }
+    public void ed()
+    { d++; prov();}
+    public void des()
+    {
+        m++; prov();
+    }
+    public void cot() { y++; }
+    public void print()
+    {System.out.println(d +"."+m+"."+y);}
+}
+class Time implements Triad
+{
+    int s, m, h;
+    Time(int h, int m, int s)
+    {
+        this.h=h; this.m=m; this.s=s;
+       prov();
+    }
+    public void prov()
+    {if(s>=60) { m+=s/60; s%=60;}
+        if (m>=60) {h+=m/60; m%=60;}}
+    public void ed()
+    { s++; prov();}
+    public void des()
+    {
+        m++; prov();
+    }
+    public void cot() { h++; }
+    public void print()
+    {System.out.println(h +" hours "+m+" minutes "+s+" seconds");}
+}
+
+public class Main
+{
+public static void main(String[] args) {
+Scanner sc=new Scanner (System.in);
+System.out.println("Data (day, mounth, year)");
+int x=sc.nextInt();
+int y=sc.nextInt();
+int z=sc.nextInt();
+Date a= new Date(x, y, z);
+a.print(); a.ed(); a.print(); a.des(); a.print(); a.cot(); a.print();
+System.out.println("Time (hour, min, sec)");
+x=sc.nextInt();
+y=sc.nextInt();
+z=sc.nextInt();
+Time b= new Time(x, y, z);
+b.print(); b.ed(); b.print(); b.des(); b.print(); b.cot(); b.print();
+}
+}
