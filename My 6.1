@@ -1,0 +1,121 @@
+public class Plenty
+{
+    Integer [] arr;
+    Plenty(Integer [] arr)
+    {
+        prov(arr);
+        this.arr=arr;
+    }
+    public Integer [] getArr()
+    {
+        return arr;
+    }
+    public void del(int x)
+    {
+       Integer [] c=new Integer [arr.length-1]; int d=0;
+        for(int i=0; i<arr.length; i++)
+        if(arr[i]!=x) { c[d]=arr[i]; d++;}
+        arr=c;
+    }
+   public void adde(int x)
+    {
+        Integer [] c=new Integer [arr.length+1];
+        for(int i=0; i<arr.length; i++)
+        c[i]=arr[i];
+        c[arr.length]=x;
+        prov(c);
+        arr=c;
+    }
+   public Plenty tog(Plenty x, Plenty y)
+   {
+       Integer [] c=new Integer [x.getArr().length+y.getArr().length];
+       for(int i=0; i<x.getArr().length; i++)
+       c[i]=x.getArr()[i];
+       for(int j=0; j<y.getArr().length; j++)
+       c[x.getArr().length+j]=y.getArr()[j];
+       prov(c);
+       Plenty ci=new Plenty(c);
+       return ci;
+   }
+   public Plenty per(Plenty x, Plenty y)
+   {
+       int d=0;
+       Integer[] c= new Integer[x.getArr().length];
+       for(int i=0; i<x.getArr().length; i++)
+       for(int j=0; j<y.getArr().length; j++)
+       if (x.getArr()[i]==y.getArr()[j])
+       {
+           c[d]=x.getArr()[i]; d++;
+       }
+       c=otnull(c);
+       Plenty ci=new Plenty(c);
+       return ci;
+   }
+   public Plenty razn(Plenty x, Plenty y)
+   {
+       int d=0;
+       Integer[] c= new Integer[x.getArr().length+y.getArr().length];
+       for(int i=0; i<x.getArr().length; i++, d++)
+       for(int j=0; j<y.getArr().length; j++)
+       {
+       if (x.getArr()[i]!=y.getArr()[j])
+       c[d]=x.getArr()[i]; else { d--; break;}
+       }
+       for(int i=0; i<y.getArr().length; i++, d++)
+       for(int j=0; j<x.getArr().length; j++)
+       {
+       if (y.getArr()[i]!=x.getArr()[j])
+       c[d]=y.getArr()[i]; else { d--; break;}
+       }
+       c=otnull(c);
+       Plenty ci=new Plenty(c);
+       return ci;
+   }
+void print()
+   {
+     for(int j=0; j<arr.length; j++)
+      System.out.print(arr[j]+"; ");
+      System.out.println("\n");
+   }
+   void prov(Integer [] arr)
+   {
+       Integer [] c=new Integer [arr.length]; int d=0; boolean f=true; boolean f2=true;
+        for(int i=0; i<arr.length-1; i++, d++)
+        {
+        for(int j=i+1; j<arr.length; j++)
+        if(arr[i]==arr[j]) f2=false;
+        if(f2==true) c[d]=arr[i];
+        else { d--;}
+        }
+        for(int j=arr.length-1; j<=arr.length-1; j++)
+        for(int i=0; i<arr.length; i++)
+        if(arr[j]==arr[i]) f=false;
+        if (f==true) c[arr.length-1]=arr[arr.length-1];
+        arr=c;
+   }
+   Integer [] otnull(Integer [] a)
+   {
+    int n=a.length; int d=0;
+    for(int i=0; i<a.length; i++)
+    if(a[i]==null) n--;
+    Integer [] c=new Integer [n]; d=0;
+    for(int i=0; i<a.length; i++) {
+    if(a[i]!=null) c[d]=a[i]; else d--; d++;}
+    return c;
+   }
+}
+
+import java.util.*;
+
+public class Main
+{
+public static void main(String[] args) {
+//Scanner sc=new Scanner (System.in);
+Integer [] arr = {1,2, 3, 4, 5, 4, 6};
+Integer [] ar = { 6, 7, 8, 9};
+Plenty a= new Plenty(arr);
+a.print(); a.adde(0); a.print(); a.del(3); a.print();
+Plenty b=new Plenty(ar);
+Plenty c = new Plenty(ar); c=c.tog(a, b); c.print(); c=c.per(a, b); c.print(); c=c.razn(a, b); c.print();
+}
+}
