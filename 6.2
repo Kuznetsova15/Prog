@@ -1,0 +1,85 @@
+import java.util.*;
+
+//Определить класс Жидкость с полями: название и плотность
+//Функции: назначения и изменения полей, println
+
+
+public class Main {
+    public static void main(String [] args){
+        Liq l=new Liq("Water", 1);
+        l.print();
+        l.izm(1, "Sea Water"); l.print(); l.izm(2, 1.03); l.print();
+        l.izm(1, "H2SO4"); l.izm(2, 1.8);
+        Solution k=new Solution("H2SO4", 1.8, 10);
+       k.print(); k.izm(5, 11); k.print();
+    }
+}
+public class Solution extends Liquid
+{
+    int con;
+  Solution(String name, double p, int con) {
+     this.name=name; this.p=p; this.con=con;
+    }
+    void izm(int k, int y)
+    {
+        if(k==5) con=y;
+    }
+    void print()
+    {
+        System.out.print(name +" - "+p);
+       // if(x!=Double.POSITIVE_INFINITY) System.out.print(" - "+x);
+        //if(s!=null) System.out.print(" - "+s);
+        System.out.print("\n");
+        System.out.print(" - "+con);
+    }
+}
+public class Liq extends Liquid
+{
+    double p; String name; int x; //double x=Double.POSITIVE_INFINITY; String s=null;
+    Liq(String name, double p) {
+        this.p=p; this.name=name;
+    }
+    Liq(String name, double p, int x){
+        this.p=p; this.name=name; this.x=x;
+    }
+     /*Liquid(String name, double p, String s) {
+        this.p=p; this.name=name; this.s=s;
+    }
+     Liquid(String name, double p, double x, String s) {
+        this.p=p; this.name=name; this.x=x; this.s=s;
+    }*/
+    void print()
+    {
+        System.out.print(name +" - "+p);
+        //if(x!=Double.POSITIVE_INFINITY) System.out.print(" - "+x);
+      // if(s!=null) System.out.print(" - "+s);
+        System.out.print("\n");
+    }
+    void izm(int k, String y)
+    {
+        if(k==1) name=y;
+       // if(k==4) s=y;
+    }
+    void izm(int k, double y)
+    {
+        if(k==2) p=y;
+      // if(k==3) x=y;
+    }
+   // void add(double y)
+    {
+     // this.x=y;
+    }
+   // void add(String si)
+    {
+     // this.s=si;
+    }
+  // void add(double y, String si)
+    {
+    // this.s=si; this.x=y;
+    }
+}
+abstract class Liquid
+{
+    String name; double p;
+    abstract void print();
+}
