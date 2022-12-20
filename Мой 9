@@ -1,5 +1,6 @@
 
 //9
+//https://drupal-coder.ru/
 //Определить интерфейс Triad с методами +1
 //Реализовать в классах Date и Time
 import java.util.Scanner;
