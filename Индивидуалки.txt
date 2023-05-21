@@ -1,0 +1,316 @@
+//Индивидуалка 1 "Распараллеливание итераций цикла". Вариант 1.
+//Численное дифференцирование:
+//Найти I-ую производную фун.-ии на отрезке [a; b],
+//используя разностную формулу II-ого порядка
+#include <iostream>
+
+#include <cmath>
+
+#include <omp.h>
+
+using namespace std;
+
+int main()
+
+{
+   int n=1000, i, a=1, b=3;
+
+double sum= 0.0, h, x, s;
+
+h=(double)(b-a)/n;
+
+//f1=(double)(f(b)-f(a))/h
+
+/*#pragma omp parallel private(i, x) shared(sum, h, n) num_threads(50)
+
+{
+   double l_sum = 0.0;
+
+#pragma omp for
+ 
+for (i=0; i<n; i++)  //for (i=1; i<=n; i++)
+
+{
+   x=a+i*h;         // x=a+h*((double)i-0.5);
+   
+l_sum +=((x+h)*(x+h)+(x-h)*(x-h)-2*x*x)/(h*h);         // l_sum += Функция f(x);
+
+}
+
+#pragma omp critical 
+sum += l_sum;
+}
+
+s=sum*h;
+
+cout<<s<<endl;
+*/
+
+
+sum= 0.0;
+
+#pragma omp parallel private(i, x) shared(sum, h, n, s) num_threads(50)
+
+{
+   double l_sum = 0.0;
+
+#pragma omp for
+  
+for (i=1; i<=n; i++)
+
+{
+   x=a+h*((double)i-0.5);
+   
+l_sum +=(2*(x+h)*(x+h)+2*(x-h)*(x-h)-2*2*x*x)/(h*h);         // l_sum += Функция f(x);
+
+}
+
+#pragma omp critical
+ sum += l_sum;
+}
+
+cout<<sum*h<<endl;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//Индивидуалка 2. MPI. Вариант 6.
+//Найти min эл.-т n послед.-ей из n файлов
+#include <iostream>
+
+#include <cmath>
+
+#include "stdafx.h"
+
+#include <stdio.h>
+
+#include <fstream>
+
+#include "mpi.h"
+
+
+#define _USE_MATH_DEFINES
+
+
+#include <ctime>
+
+#include <iomanip>
+ 
+using namespace std;
+ 
+// Главная функция программы
+ 
+int main(int argc, char **argv)
+
+
+{
+ 
+    // Объявление переменных
+ 
+   
+int n = 4;
+
+string *namefiles= new string[n];
+
+namefiles[0]="File0.txt";
+
+namefiles[1]="File1.txt";
+
+namefiles[2]="File2.txt";
+
+namefiles[3]="File3.txt";
+
+
+int myid, numprocs, i;
+
+int *a = new int[n];
+ 
+double min;
+
+int namelen;
+
+char processor_name[MPI_MAX_PROCESSOR_NAME];
+ 
+    // Инициализация подсистемы MPI
+ 
+MPI_Init(&argc, &argv);
+ 
+    // Получить размер коммуникатора MPI_COMM_WORLD
+ 
+// (общее число процессов в рамках задачи)
+
+MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
+ 
+    // Получить номер текущего процесса в рамках
+
+// коммуникатора MPI_COMM_WORLD
+ 
+MPI_Comm_rank(MPI_COMM_WORLD, &myid);
+ 
+    
+MPI_Get_processor_name(processor_name, &namelen);
+ 
+   
+ if (myid == 0)
+ 
+ //   {
+ 
+        
+//for (i = 0; i<n; i++)
+ 
+      
+ // {
+           
+// a[i] = rand() % 9 + 1;
+ // генерируем случайные числа 
+ 
+            min = 0;
+ 
+      
+ // }
+   
+// }
+ 
+   
+ // Рассылка количества интервалов всем процессам (в том числе и себе)
+ 
+  
+ MPI_Bcast(&n, 1, MPI_INT, 0, MPI_COMM_WORLD);
+ 
+   
+ // Обсчитывание точки, закрепленной за процессом
+ 
+  
+  for (i = myid + 1; i <= n-1; i += numprocs)
+ 
+    
+{
+        if (a[i]<min) min = a[i];
+    }
+ 
+    // Если это главный процесс, вывод полученного результата
+ 
+    
+if (myid == 0)
+ 
+    
+{
+        
+  cout << "Vector:" << a[i] << "\n";
+      
+  cout << "Min:" << min << "\n";
+ 
+      
+ delete[] a; // освобождение памяти
+ 
+   
+ }
+ 
+    // Освобождение подсистемы MPI
+ 
+   
+ MPI_Finalize();
+ 
+   
+ return 0;
+ 
+
+}
+
+
+//Индивидуалка 2 (2).
+#include <iostream>
+#include <cmath>
+#include <math.h>
+#include <fstream>
+#include <string>
+#include "mpi.h"
+using namespace std;
+float minproc(float *a, int x, int y)
+{
+float mina=a[x];
+for (int i=x+1; i<y+1; i++)
+if (a[i]<mina) mina=a[i];
+return mina;
+}
+
+int main(int argc, char *argv[])
+{
+int n = 4, m=5, rank;
+int size = n+1;
+float min, mina;
+float *all=new float[m*n];
+string *namefiles= new string[n];
+namefiles[0]="File0.txt";
+namefiles[1]="File1.txt";
+namefiles[2]="File2.txt";
+namefiles[3]="File3.txt";
+
+//Чтение из файла
+ifstream f0(namefiles[0]);
+f0>>min;
+cout<<min;
+f0.close();
+
+ MPI_Comm comm = MPI_COMM_WORLD;
+ MPI_Status status;
+
+MPI_Init(&argc, &argv);
+MPI_Comm_size(MPI_COMM_WORLD, &size);
+MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+if (size>n*m) size=n;
+if (rank==0)
+  for (int i=0; i<n; i++)
+  {
+      ifstream f(namefiles[i]);
+      for (int j=i*m; j<(i+1)*m; j++)  //for(int j=0; j<m; j++)
+        all[j]<<f;                     //a[j]<<f;
+  f.close();
+                                      //MPI_Bcast(a, m, MPI_Float, 0, MPI_COMM_WORLD);
+  }
+  
+  MPI_Bcast(all, m*n, MPI_Float, 0, MPI_COMM_WORLD);
+//k=N/size;
+int ibeg, iend;
+ibeg=m*rank;
+else iend=(rank+1)*m-1;
+
+mina=minproc(all, ibeg, iend)
+
+if(rank==0)
+{
+    if (min>mina) min=mina;
+    for (int i=1; i<size; i++)
+    {
+        MPI_Recv(&mina, 1, MPI_Float, i, 0, MPI_COMM_WORLD, &status);
+        cout<<"min of process number "<<i<<" = "<<mina<<"\n";
+        if (min>mina) min=mina;
+    }
+}
+else MPI_Send(&mina, 1, MPI_Float, 0, 0, MPI_COMM_WORLD);
+
+//Вывод результата
+if(rank==0)
+{
+ofstream h("FileReq.txt");
+h<<min;
+h.close();
+}
+MPI_Finalize();
+return 0;
+}
