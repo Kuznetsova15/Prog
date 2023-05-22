@@ -1,76 +1,87 @@
-//Индивидуалка 1 "Распараллеливание итераций цикла". Вариант 1.
-//Численное дифференцирование:
-//Найти I-ую производную фун.-ии на отрезке [a; b],
-//используя разностную формулу II-ого порядка
 #include <iostream>
-
 #include <cmath>
-
-#include <omp.h>
-
+#include <math.h>
+#include <fstream>
+#include <string>
+#include <mpi.h>
 using namespace std;
-
-int main()
-
+float minproc(float* a, int x, int y)
 {
-   int n=1000, i, a=1, b=3;
-
-double sum= 0.0, h, x, s;
-
-h=(double)(b-a)/n;
-
-//f1=(double)(f(b)-f(a))/h
-
-/*#pragma omp parallel private(i, x) shared(sum, h, n) num_threads(50)
-
-{
-   double l_sum = 0.0;
-
-#pragma omp for
- 
-for (i=0; i<n; i++)  //for (i=1; i<=n; i++)
-
-{
-   x=a+i*h;         // x=a+h*((double)i-0.5);
-   
-l_sum +=((x+h)*(x+h)+(x-h)*(x-h)-2*x*x)/(h*h);         // l_sum += Функция f(x);
-
+	float mina = a[x];
+	for (int i = x + 1; i < y + 1; i++)
+		if (a[i] < mina) mina = a[i];
+	return mina;
 }
 
-#pragma omp critical 
-sum += l_sum;
-}
-
-s=sum*h;
-
-cout<<s<<endl;
-*/
-
-
-sum= 0.0;
-
-#pragma omp parallel private(i, x) shared(sum, h, n, s) num_threads(50)
-
+int main(int argc, char* argv[])
 {
-   double l_sum = 0.0;
+	int n = 4, m = 5, rank, buf[2];
+	int size = n + 1;
+	float min, mina;
+	float* all = new float[m * n];
+	string* namefiles = new string[n];
+	namefiles[0] = "File0.txt";
+	namefiles[1] = "File1.txt";
+	namefiles[2] = "File2.txt";
+	namefiles[3] = "File3.txt";
 
-#pragma omp for
-  
-for (i=1; i<=n; i++)
+	//Г—ГІГҐГ­ГЁГҐ ГЁГ§ ГґГ Г©Г«Г 
+	ifstream f0(namefiles[0]);
+	f0 >> min;
+	cout << min;
+	f0.close();
 
-{
-   x=a+h*((double)i-0.5);
-   
-l_sum +=(2*(x+h)*(x+h)+2*(x-h)*(x-h)-2*2*x*x)/(h*h);         // l_sum += Функция f(x);
+	MPI_Comm comm = MPI_COMM_WORLD;
+	MPI_Status status;
 
+	MPI_Init(&argc, &argv);
+	MPI_Comm_size(MPI_COMM_WORLD, &size);
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+	if (size > n * m) size = n;
+	int ibeg, iend;
+	ibeg = m * rank;
+	if (rank == 0)
+	{
+		for (int i = 0; i < n; i++)
+		{
+			ifstream f(namefiles[i]);
+			for (int j = i * m; j < (i + 1) * m; j++)  //for(int j=0; j<m; j++)
+				all[j] << f;                     //a[j]<<f;
+			f.close();
+			//MPI_Bcast(a, m, MPI_Float, 0, MPI_COMM_WORLD);
+		}
+
+		MPI_Bcast(all, m * n, MPI_FLOAT, 0, MPI_COMM_WORLD);
+		//k=N/size;
+	}
+	else iend = (rank + 1) * m - 1;
+
+	mina = minproc(all, ibeg, iend);
+
+		if (rank == 0)
+		{
+			if (min > mina) min = mina;
+			for (int i = 1; i < size; i++)
+			{
+				MPI_Recv(&mina, 1, MPI_FLOAT, i, 0, MPI_COMM_WORLD, &status);
+				cout << "min of process number " << i << " = " << mina << "\n";
+				if (min > mina) min = mina;
+			}
+		}
+		else MPI_Send(&mina, 1, MPI_FLOAT, 0, 0, MPI_COMM_WORLD);
+
+	//Г‚Г»ГўГ®Г¤ Г°ГҐГ§ГіГ«ГјГІГ ГІГ 
+	if (rank == 0)
+	{
+		ofstream h("FileReq.txt");
+		h << min;
+		h.close();
+	}
+	MPI_Finalize();
+	return 0;
 }
 
-#pragma omp critical
- sum += l_sum;
-}
-
-cout<<sum*h<<endl;
-}
 
 
 
@@ -87,9 +98,8 @@ cout<<sum*h<<endl;
 
 
 
-
-//Индивидуалка 2. MPI. Вариант 6.
-//Найти min эл.-т n послед.-ей из n файлов
+//Г€Г­Г¤ГЁГўГЁГ¤ГіГ Г«ГЄГ  2. MPI. Г‚Г Г°ГЁГ Г­ГІ 6.
+//ГЌГ Г©ГІГЁ min ГЅГ«.-ГІ n ГЇГ®Г±Г«ГҐГ¤.-ГҐГ© ГЁГ§ n ГґГ Г©Г«Г®Гў
 #include <iostream>
 
 #include <cmath>
@@ -112,14 +122,14 @@ cout<<sum*h<<endl;
  
 using namespace std;
  
-// Главная функция программы
+// ГѓГ«Г ГўГ­Г Гї ГґГіГ­ГЄГ¶ГЁГї ГЇГ°Г®ГЈГ°Г Г¬Г¬Г»
  
 int main(int argc, char **argv)
 
 
 {
  
-    // Объявление переменных
+    // ГЋГЎГєГїГўГ«ГҐГ­ГЁГҐ ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Гµ
  
    
 int n = 4;
@@ -145,19 +155,19 @@ int namelen;
 
 char processor_name[MPI_MAX_PROCESSOR_NAME];
  
-    // Инициализация подсистемы MPI
+    // Г€Г­ГЁГ¶ГЁГ Г«ГЁГ§Г Г¶ГЁГї ГЇГ®Г¤Г±ГЁГ±ГІГҐГ¬Г» MPI
  
 MPI_Init(&argc, &argv);
  
-    // Получить размер коммуникатора MPI_COMM_WORLD
+    // ГЏГ®Г«ГіГ·ГЁГІГј Г°Г Г§Г¬ГҐГ° ГЄГ®Г¬Г¬ГіГ­ГЁГЄГ ГІГ®Г°Г  MPI_COMM_WORLD
  
-// (общее число процессов в рамках задачи)
+// (Г®ГЎГ№ГҐГҐ Г·ГЁГ±Г«Г® ГЇГ°Г®Г¶ГҐГ±Г±Г®Гў Гў Г°Г Г¬ГЄГ Гµ Г§Г Г¤Г Г·ГЁ)
 
 MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
  
-    // Получить номер текущего процесса в рамках
+    // ГЏГ®Г«ГіГ·ГЁГІГј Г­Г®Г¬ГҐГ° ГІГҐГЄГіГ№ГҐГЈГ® ГЇГ°Г®Г¶ГҐГ±Г±Г  Гў Г°Г Г¬ГЄГ Гµ
 
-// коммуникатора MPI_COMM_WORLD
+// ГЄГ®Г¬Г¬ГіГ­ГЁГЄГ ГІГ®Г°Г  MPI_COMM_WORLD
  
 MPI_Comm_rank(MPI_COMM_WORLD, &myid);
  
@@ -176,7 +186,7 @@ MPI_Get_processor_name(processor_name, &namelen);
  // {
            
 // a[i] = rand() % 9 + 1;
- // генерируем случайные числа 
+ // ГЈГҐГ­ГҐГ°ГЁГ°ГіГҐГ¬ Г±Г«ГіГ·Г Г©Г­Г»ГҐ Г·ГЁГ±Г«Г  
  
             min = 0;
  
@@ -186,13 +196,13 @@ MPI_Get_processor_name(processor_name, &namelen);
 // }
  
    
- // Рассылка количества интервалов всем процессам (в том числе и себе)
+ // ГђГ Г±Г±Г»Г«ГЄГ  ГЄГ®Г«ГЁГ·ГҐГ±ГІГўГ  ГЁГ­ГІГҐГ°ГўГ Г«Г®Гў ГўГ±ГҐГ¬ ГЇГ°Г®Г¶ГҐГ±Г±Г Г¬ (Гў ГІГ®Г¬ Г·ГЁГ±Г«ГҐ ГЁ Г±ГҐГЎГҐ)
  
   
  MPI_Bcast(&n, 1, MPI_INT, 0, MPI_COMM_WORLD);
  
    
- // Обсчитывание точки, закрепленной за процессом
+ // ГЋГЎГ±Г·ГЁГІГ»ГўГ Г­ГЁГҐ ГІГ®Г·ГЄГЁ, Г§Г ГЄГ°ГҐГЇГ«ГҐГ­Г­Г®Г© Г§Г  ГЇГ°Г®Г¶ГҐГ±Г±Г®Г¬
  
   
   for (i = myid + 1; i <= n-1; i += numprocs)
@@ -202,7 +212,7 @@ MPI_Get_processor_name(processor_name, &namelen);
         if (a[i]<min) min = a[i];
     }
  
-    // Если это главный процесс, вывод полученного результата
+    // Г…Г±Г«ГЁ ГЅГІГ® ГЈГ«Г ГўГ­Г»Г© ГЇГ°Г®Г¶ГҐГ±Г±, ГўГ»ГўГ®Г¤ ГЇГ®Г«ГіГ·ГҐГ­Г­Г®ГЈГ® Г°ГҐГ§ГіГ«ГјГІГ ГІГ 
  
     
 if (myid == 0)
@@ -215,12 +225,12 @@ if (myid == 0)
   cout << "Min:" << min << "\n";
  
       
- delete[] a; // освобождение памяти
+ delete[] a; // Г®Г±ГўГ®ГЎГ®Г¦Г¤ГҐГ­ГЁГҐ ГЇГ Г¬ГїГІГЁ
  
    
  }
  
-    // Освобождение подсистемы MPI
+    // ГЋГ±ГўГ®ГЎГ®Г¦Г¤ГҐГ­ГЁГҐ ГЇГ®Г¤Г±ГЁГ±ГІГҐГ¬Г» MPI
  
    
  MPI_Finalize();
@@ -232,7 +242,7 @@ if (myid == 0)
 }
 
 
-//Индивидуалка 2 (2).
+//Г€Г­Г¤ГЁГўГЁГ¤ГіГ Г«ГЄГ  2 (2).
 #include <iostream>
 #include <cmath>
 #include <math.h>
@@ -260,7 +270,7 @@ namefiles[1]="File1.txt";
 namefiles[2]="File2.txt";
 namefiles[3]="File3.txt";
 
-//Чтение из файла
+//Г—ГІГҐГ­ГЁГҐ ГЁГ§ ГґГ Г©Г«Г 
 ifstream f0(namefiles[0]);
 f0>>min;
 cout<<min;
@@ -304,7 +314,7 @@ if(rank==0)
 }
 else MPI_Send(&mina, 1, MPI_Float, 0, 0, MPI_COMM_WORLD);
 
-//Вывод результата
+//Г‚Г»ГўГ®Г¤ Г°ГҐГ§ГіГ«ГјГІГ ГІГ 
 if(rank==0)
 {
 ofstream h("FileReq.txt");
